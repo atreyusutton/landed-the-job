@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/user";
 import { db } from "@/lib/db";
+import { deleteResume } from "./actions";
+import { SubmitButton } from "@/components/Form";
 
 export default async function ResumesPage() {
   const user = await requireUser();
@@ -40,25 +42,30 @@ export default async function ResumesPage() {
       ) : (
         <ul className="divide-y divide-[#eee] border-y border-[#eee]">
           {resumes.map((r) => (
-            <li key={r.id}>
+            <li
+              key={r.id}
+              className="flex items-center justify-between gap-4 py-4 px-2 hover:bg-[#fafafa]"
+            >
               <Link
                 href={`/dashboard/resumes/${r.id}`}
-                className="flex justify-between items-center py-4 px-2 hover:bg-[#fafafa]"
+                className="flex-1 min-w-0"
               >
-                <div>
-                  <div className="font-bold text-sm">
-                    {r.title ?? "Untitled resume"}
+                <div className="font-bold text-sm truncate">
+                  {r.title ?? "Untitled resume"}
+                </div>
+                {r.job && (
+                  <div className="text-xs text-[#666] truncate">
+                    {r.job.title} @ {r.job.company}
                   </div>
-                  {r.job && (
-                    <div className="text-xs text-[#666]">
-                      {r.job.title} @ {r.job.company}
-                    </div>
-                  )}
-                </div>
-                <div className="text-xs text-[#666]">
-                  {r.createdAt.toLocaleDateString()}
-                </div>
+                )}
               </Link>
+              <div className="text-xs text-[#666] shrink-0">
+                {r.createdAt.toLocaleDateString()}
+              </div>
+              <form action={deleteResume} className="shrink-0">
+                <input type="hidden" name="id" value={r.id} />
+                <SubmitButton variant="ghost">Delete</SubmitButton>
+              </form>
             </li>
           ))}
         </ul>

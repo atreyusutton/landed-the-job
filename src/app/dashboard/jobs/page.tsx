@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/user";
 import { db } from "@/lib/db";
+import { deleteJob } from "./actions";
+import { SubmitButton } from "@/components/Form";
 
 export default async function JobsPage() {
   const user = await requireUser();
@@ -39,23 +41,28 @@ export default async function JobsPage() {
       ) : (
         <ul className="divide-y divide-[#eee] border-y border-[#eee]">
           {jobs.map((j) => (
-            <li key={j.id}>
+            <li
+              key={j.id}
+              className="flex items-center justify-between gap-4 py-4 px-2 hover:bg-[#fafafa]"
+            >
               <Link
                 href={`/dashboard/jobs/${j.id}`}
-                className="flex justify-between items-center py-4 px-2 hover:bg-[#fafafa]"
+                className="flex-1 min-w-0"
               >
-                <div>
-                  <div className="font-bold text-sm">{j.title}</div>
-                  <div className="text-xs text-[#666]">
-                    {j.company}
-                    {j.location ? ` • ${j.location}` : ""}
-                    {j.source ? ` • ${j.source}` : ""}
-                  </div>
-                </div>
-                <div className="text-xs text-[#666]">
-                  {j.createdAt.toLocaleDateString()}
+                <div className="font-bold text-sm truncate">{j.title}</div>
+                <div className="text-xs text-[#666] truncate">
+                  {j.company}
+                  {j.location ? ` • ${j.location}` : ""}
+                  {j.source ? ` • ${j.source}` : ""}
                 </div>
               </Link>
+              <div className="text-xs text-[#666] shrink-0">
+                {j.createdAt.toLocaleDateString()}
+              </div>
+              <form action={deleteJob} className="shrink-0">
+                <input type="hidden" name="id" value={j.id} />
+                <SubmitButton variant="ghost">Delete</SubmitButton>
+              </form>
             </li>
           ))}
         </ul>
