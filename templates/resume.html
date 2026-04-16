@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atreyu Sutton — Resume</title>
+<style>
+  @page {
+    size: letter;
+    margin: 0;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 11.5px;
+    line-height: 1.35;
+    color: #1a1a1a;
+    width: 8.5in;
+    min-height: 11in;
+    max-height: 11in;
+    padding: 0.4in 0.5in;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  a {
+    color: #1a1a1a;
+    text-decoration: none;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1.5px solid #1a1a1a;
+  }
+
+  .header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .contact {
+    font-size: 11px;
+    color: #444;
+    letter-spacing: 0.3px;
+  }
+
+  .contact span {
+    margin: 0 4px;
+    color: #999;
+  }
+
+  /* Sections */
+  .section {
+    margin-bottom: 7px;
+  }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #1a1a1a;
+    border-bottom: 0.75px solid #ccc;
+    padding-bottom: 2px;
+    margin-bottom: 5px;
+  }
+
+  /* Entries */
+  .entry {
+    margin-bottom: 5px;
+  }
+
+  .entry:last-child {
+    margin-bottom: 0;
+  }
+
+  .entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .entry-title {
+    font-size: 11.5px;
+    font-weight: 700;
+  }
+
+  .entry-meta {
+    font-size: 10.5px;
+    color: #666;
+    font-style: italic;
+    white-space: nowrap;
+  }
+
+  .entry-subtitle {
+    font-size: 11px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 2px;
+  }
+
+  ul {
+    padding-left: 14px;
+    margin-top: 1px;
+  }
+
+  li {
+    margin-bottom: 1px;
+    padding-left: 2px;
+  }
+
+  /* Skills grid */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px 20px;
+  }
+
+  .skill-category {
+    font-size: 11px;
+  }
+
+  .skill-label {
+    font-weight: 700;
+  }
+
+  /* Education grid */
+  .edu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px 20px;
+  }
+
+  .edu-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .edu-degree {
+    font-size: 11.5px;
+  }
+
+  .edu-school {
+    font-size: 10.5px;
+    color: #555;
+  }
+
+  @media print {
+    body {
+      padding: 0.4in 0.5in;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Atreyu Sutton</h1>
+  <div class="contact">
+    Boulder, CO <span>|</span>
+    303-990-2525 <span>|</span>
+    <a href="mailto:atreyusutton@proton.me">atreyusutton@proton.me</a> <span>|</span>
+    <a href="https://github.com/atreyusutton">github.com/atreyusutton</a> <span>|</span>
+    <a href="https://atreyusutton.com">atreyusutton.com</a>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Camera & Production Experience</div>
+  <div class="entry">
+    <div class="entry-header">
+      <div class="entry-title">Film Gear South Africa — Camera Technician</div>
+      <div class="entry-meta">2020</div>
+    </div>
+    <ul>
+      <li>Worked in feature film production prepping, maintaining, and rigging high-end cinema camera systems</li>
+      <li>Built camera rigs for production including gimbal mounts, wireless video transmitters, monitors, and follow focus systems</li>
+      <li>Managed camera rental operations: prep, inspection, sensor cleaning, and client gear consultation</li>
+      <li>Operated cameras on set working alongside crew to execute shots</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Projects & Engineering Experience</div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <div class="entry-title">Formula SAE EV Racing Team — Electrical Systems Lead</div>
+      <div class="entry-meta">University of Colorado Boulder</div>
+    </div>
+    <div class="entry-subtitle">Battery Discharge System (500V DC)</div>
+    <ul>
+      <li>Designing a custom discharge system to safely bring a 500V accumulator to ~30% state-of-charge post-operation</li>
+      <li>Selected high-power ceramic wire-wound resistors for sustained HV DC dissipation, managing thermal derating and isolation at 500V</li>
+      <li>Engineered forced-air cooling with server-grade fans on a separate 110V AC supply, independent from the HV DC bus</li>
+      <li>Created custom fan shroud and ducting in CAD to direct airflow and maintain safe temperatures under sustained load</li>
+      <li>Integrating across mechanical, electrical, and systems teams with full vehicle safety interlocks</li>
+    </ul>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <div class="entry-title">Digital Turntable — Embedded Linux + Hardware Integration</div>
+      <div class="entry-meta">Personal Project</div>
+    </div>
+    <ul>
+      <li>Retrofitted a vinyl record player with a Raspberry Pi 4 as a Spotify Connect turntable with real-time display and network control</li>
+      <li>Designed custom power distribution: 12V AC-DC supply split via buck converter to 5V for Pi, OEM motor independent on 12V rail</li>
+      <li>Built real-time IPC pipeline with lock-serialized event handling between audio, display, and control services</li>
+      <li>Implementing dual-display output: round LCD for album art, secondary touchscreen in Chromium kiosk for control UI</li>
+      <li>Managed systemd services, device driver configuration, and embedded Linux OS customization</li>
+      <li>Reverse engineered original DC motor control circuit and corrected overspeed issue</li>
+    </ul>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <div class="entry-title">1988 Toyota 4Runner — Full Build</div>
+      <div class="entry-meta">Engine Swap, Wiring, Fabrication</div>
+    </div>
+    <ul>
+      <li>Performed a 3.4L V6 engine swap, adapting mounts, drivetrain, and intake/exhaust to a non-native platform</li>
+      <li>Designed and built a complete custom wiring harness integrating sensors, ECU, and fuel injection with the existing chassis</li>
+      <li>Traced grounding faults and signal integrity issues affecting temperature sensors and relay switching</li>
+      <li>Designed a custom welded roll cage in CAD, accounting for structural load paths, wiring routing, and clearance</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Software Engineering Experience</div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <div class="entry-title">Classic Motor Market — Full-Stack Marketplace Platform</div>
+      <div class="entry-meta">Professional Work</div>
+    </div>
+    <ul>
+      <li>Built a members-only marketplace using Next.js, React, TypeScript, and PostgreSQL via Prisma ORM</li>
+      <li>Implemented server-side logic for listing management, image state reconciliation, and role-based access control</li>
+      <li>Integrated Cloudflare Images, Stripe payments, email relay, and OAuth authentication</li>
+    </ul>
+  </div>
+
+  <div class="entry">
+    <div class="entry-header">
+      <div class="entry-title">Sutton Web Solutions LLC — Founder & Developer</div>
+    </div>
+    <ul>
+      <li>Founded a software consultancy delivering full-stack applications for clients across multiple industries</li>
+      <li>Built production systems with C, C++, Python, and JavaScript across embedded, backend, and frontend environments</li>
+      <li>Developed backend services with relational databases, REST APIs, and cloud deployment (AWS, Google Cloud)</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Aviation</div>
+  <div class="entry">
+    <div class="entry-header">
+      <div class="entry-title">Student Pilot — 40+ Flight Hours</div>
+    </div>
+    <ul>
+      <li>Flight experience with understanding of aerodynamics, aircraft systems, and real-time decision-making in safety-critical environments</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Skills</div>
+  <div class="skills-grid">
+    <div class="skill-category"><span class="skill-label">Embedded & Systems:</span> C, C++, Python · Embedded Linux (device drivers, device trees, systemd) · Real-time systems · Arduino, Raspberry Pi</div>
+    <div class="skill-category"><span class="skill-label">Electrical:</span> HV and 12V wiring, relays, contactors · Sensor integration, signal debugging · Soldering, PCB layout · 3D printing</div>
+    <div class="skill-category"><span class="skill-label">Mechanical:</span> CAD design · Thermal management · Cross-disciplinary system integration</div>
+    <div class="skill-category"><span class="skill-label">Software:</span> JavaScript/TypeScript, Java, React, Django · PostgreSQL, REST APIs · AWS, Google Cloud, Git</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Education</div>
+  <div class="edu-grid">
+    <div>
+      <div class="edu-degree"><strong>M.S. Computer Science</strong> (In Progress)</div>
+      <div class="edu-school">University of Colorado Boulder — ATLAS Institute</div>
+    </div>
+    <div>
+      <div class="edu-degree"><strong>B.A. Computer Science</strong> — GPA: 3.94</div>
+      <div class="edu-school">Rollins College</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

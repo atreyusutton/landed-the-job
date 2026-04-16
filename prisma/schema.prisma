@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  name      String?
+  phone     String?
+  location  String?
+  linkedin  String?
+  portfolio String?
+
+  credits   Int      @default(3)
+  plan      String   @default("free")
+  stripeId  String?  @unique
+
+  preferences   Preferences?
+  experiences   Experience[]
+  projects      Project[]
+  education     Education[]
+  skills        Skill[]
+  certs         Certification[]
+  jobs          Job[]
+  resumes       Resume[]
+  coverLetters  CoverLetter[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Preferences {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  targetRoles     String[] @default([])
+  industries      String[] @default([])
+  workStyle       String?
+  salaryMin       Int?
+  salaryMax       Int?
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Experience {
+  id              String    @id @default(cuid())
+  userId          String
+  company         String
+  title           String
+  location        String?
+  startDate       DateTime
+  endDate         DateTime?
+  current         Boolean   @default(false)
+  responsibilities String[] @default([])
+  achievements    String[]  @default([])
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String
+  techStack   String[] @default([])
+  url         String?
+  outcomes    String?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Education {
+  id        String    @id @default(cuid())
+  userId    String
+  school    String
+  degree    String?
+  field     String?
+  startDate DateTime?
+  endDate   DateTime?
+  gpa       Float?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum SkillCategory {
+  TECHNICAL
+  SOFT
+  TOOL
+  LANGUAGE
+}
+
+model Skill {
+  id       String        @id @default(cuid())
+  userId   String
+  name     String
+  category SkillCategory
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Certification {
+  id      String    @id @default(cuid())
+  userId  String
+  name    String
+  issuer  String?
+  date    DateTime?
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Job {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  company     String
+  description String   @db.Text
+  requirements String? @db.Text
+  location    String?
+  salary      String?
+  url         String?
+  source      String?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resumes     Resume[]
+  coverLetters CoverLetter[]
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Resume {
+  id        String   @id @default(cuid())
+  userId    String
+  jobId     String?
+  title     String?
+  html      String   @db.Text
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job       Job?     @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model CoverLetter {
+  id        String   @id @default(cuid())
+  userId    String
+  jobId     String?
+  title     String?
+  content   String   @db.Text
+  style     String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job       Job?     @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
