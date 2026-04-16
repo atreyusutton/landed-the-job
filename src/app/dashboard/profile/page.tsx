@@ -1,19 +1,20 @@
 import { requireUser } from "@/lib/user";
 import { db } from "@/lib/db";
 import { Field, TextArea, Select, SubmitButton } from "@/components/Form";
+import { ResumeUploader } from "@/components/ResumeUploader";
+import { ExperienceItem } from "./ExperienceItem";
+import { ProjectItem } from "./ProjectItem";
+import { EducationItem } from "./EducationItem";
+import { CertificationItem } from "./CertificationItem";
 import {
   updatePersonal,
   updatePreferences,
   addExperience,
-  removeExperience,
   addProject,
-  removeProject,
   addEducation,
-  removeEducation,
   addSkill,
   removeSkill,
   addCertification,
-  removeCertification,
 } from "./actions";
 
 export default async function ProfilePage() {
@@ -46,6 +47,8 @@ export default async function ProfilePage() {
         </p>
       </div>
 
+      <ResumeUploader />
+
       <Section title="Personal info">
         <form action={updatePersonal} className="grid sm:grid-cols-2 gap-4">
           <Field label="Full name" name="name" defaultValue={user.name} />
@@ -69,31 +72,7 @@ export default async function ProfilePage() {
       <Section title="Work experience">
         <ul className="space-y-3 mb-6">
           {experiences.map((e) => (
-            <li
-              key={e.id}
-              className="border border-[#eee] p-4 flex justify-between gap-4"
-            >
-              <div className="flex-1">
-                <div className="font-bold text-sm">
-                  {e.title} — {e.company}
-                </div>
-                <div className="text-xs text-[#666]">
-                  {fmt(e.startDate)} – {e.current ? "Present" : fmt(e.endDate)}
-                  {e.location ? ` • ${e.location}` : ""}
-                </div>
-                {e.responsibilities.length > 0 && (
-                  <ul className="text-xs mt-2 list-disc list-inside text-[#444]">
-                    {e.responsibilities.map((r, i) => (
-                      <li key={i}>{r}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-              <form action={removeExperience}>
-                <input type="hidden" name="id" value={e.id} />
-                <SubmitButton variant="ghost">Remove</SubmitButton>
-              </form>
-            </li>
+            <ExperienceItem key={e.id} experience={e} />
           ))}
         </ul>
         <form action={addExperience} className="grid sm:grid-cols-2 gap-4">
@@ -128,24 +107,7 @@ export default async function ProfilePage() {
       <Section title="Projects">
         <ul className="space-y-3 mb-6">
           {projects.map((p) => (
-            <li
-              key={p.id}
-              className="border border-[#eee] p-4 flex justify-between gap-4"
-            >
-              <div className="flex-1">
-                <div className="font-bold text-sm">{p.name}</div>
-                <div className="text-xs text-[#444] mt-1">{p.description}</div>
-                {p.techStack.length > 0 && (
-                  <div className="text-xs text-[#666] mt-1">
-                    {p.techStack.join(" · ")}
-                  </div>
-                )}
-              </div>
-              <form action={removeProject}>
-                <input type="hidden" name="id" value={p.id} />
-                <SubmitButton variant="ghost">Remove</SubmitButton>
-              </form>
-            </li>
+            <ProjectItem key={p.id} project={p} />
           ))}
         </ul>
         <form action={addProject} className="grid sm:grid-cols-2 gap-4">
@@ -165,23 +127,7 @@ export default async function ProfilePage() {
       <Section title="Education">
         <ul className="space-y-3 mb-6">
           {education.map((ed) => (
-            <li
-              key={ed.id}
-              className="border border-[#eee] p-4 flex justify-between gap-4"
-            >
-              <div className="flex-1">
-                <div className="font-bold text-sm">{ed.school}</div>
-                <div className="text-xs text-[#666]">
-                  {[ed.degree, ed.field].filter(Boolean).join(", ")}
-                  {ed.endDate ? ` • ${fmt(ed.endDate)}` : ""}
-                  {ed.gpa ? ` • GPA ${ed.gpa}` : ""}
-                </div>
-              </div>
-              <form action={removeEducation}>
-                <input type="hidden" name="id" value={ed.id} />
-                <SubmitButton variant="ghost">Remove</SubmitButton>
-              </form>
-            </li>
+            <EducationItem key={ed.id} education={ed} />
           ))}
         </ul>
         <form action={addEducation} className="grid sm:grid-cols-2 gap-4">
@@ -232,17 +178,7 @@ export default async function ProfilePage() {
       <Section title="Certifications & awards">
         <ul className="space-y-2 mb-6">
           {certs.map((c) => (
-            <li key={c.id} className="flex justify-between items-center border border-[#eee] p-3">
-              <div className="text-sm">
-                <span className="font-bold">{c.name}</span>
-                {c.issuer ? <span className="text-[#666]"> — {c.issuer}</span> : null}
-                {c.date ? <span className="text-[#666] text-xs"> • {fmt(c.date)}</span> : null}
-              </div>
-              <form action={removeCertification}>
-                <input type="hidden" name="id" value={c.id} />
-                <SubmitButton variant="ghost">Remove</SubmitButton>
-              </form>
-            </li>
+            <CertificationItem key={c.id} cert={c} />
           ))}
         </ul>
         <form action={addCertification} className="grid sm:grid-cols-3 gap-4">
@@ -322,9 +258,4 @@ function Section({
       {children}
     </section>
   );
-}
-
-function fmt(d: Date | null) {
-  if (!d) return "—";
-  return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 }

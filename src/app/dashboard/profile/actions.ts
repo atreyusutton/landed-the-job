@@ -88,6 +88,28 @@ export async function removeExperience(formData: FormData) {
   revalidatePath("/dashboard/profile");
 }
 
+export async function updateExperience(formData: FormData) {
+  const user = await requireUser();
+  const id = String(formData.get("id"));
+  const start = date(formData.get("startDate"));
+  if (!start) throw new Error("Start date required");
+  const current = formData.get("current") === "on";
+  await db.experience.updateMany({
+    where: { id, userId: user.id },
+    data: {
+      company: String(formData.get("company") ?? "").trim(),
+      title: String(formData.get("title") ?? "").trim(),
+      location: trim(formData.get("location")),
+      startDate: start,
+      endDate: current ? null : date(formData.get("endDate")),
+      current,
+      responsibilities: stringList(formData.get("responsibilities")),
+      achievements: stringList(formData.get("achievements")),
+    },
+  });
+  revalidatePath("/dashboard/profile");
+}
+
 export async function addProject(formData: FormData) {
   const user = await requireUser();
   await db.project.create({
@@ -107,6 +129,22 @@ export async function removeProject(formData: FormData) {
   const user = await requireUser();
   const id = String(formData.get("id"));
   await db.project.deleteMany({ where: { id, userId: user.id } });
+  revalidatePath("/dashboard/profile");
+}
+
+export async function updateProject(formData: FormData) {
+  const user = await requireUser();
+  const id = String(formData.get("id"));
+  await db.project.updateMany({
+    where: { id, userId: user.id },
+    data: {
+      name: String(formData.get("name") ?? "").trim(),
+      description: String(formData.get("description") ?? "").trim(),
+      techStack: stringList(formData.get("techStack")),
+      url: trim(formData.get("url")),
+      outcomes: trim(formData.get("outcomes")),
+    },
+  });
   revalidatePath("/dashboard/profile");
 }
 
@@ -130,6 +168,23 @@ export async function removeEducation(formData: FormData) {
   const user = await requireUser();
   const id = String(formData.get("id"));
   await db.education.deleteMany({ where: { id, userId: user.id } });
+  revalidatePath("/dashboard/profile");
+}
+
+export async function updateEducation(formData: FormData) {
+  const user = await requireUser();
+  const id = String(formData.get("id"));
+  await db.education.updateMany({
+    where: { id, userId: user.id },
+    data: {
+      school: String(formData.get("school") ?? "").trim(),
+      degree: trim(formData.get("degree")),
+      field: trim(formData.get("field")),
+      startDate: date(formData.get("startDate")),
+      endDate: date(formData.get("endDate")),
+      gpa: num(formData.get("gpa")),
+    },
+  });
   revalidatePath("/dashboard/profile");
 }
 
@@ -173,5 +228,19 @@ export async function removeCertification(formData: FormData) {
   const user = await requireUser();
   const id = String(formData.get("id"));
   await db.certification.deleteMany({ where: { id, userId: user.id } });
+  revalidatePath("/dashboard/profile");
+}
+
+export async function updateCertification(formData: FormData) {
+  const user = await requireUser();
+  const id = String(formData.get("id"));
+  await db.certification.updateMany({
+    where: { id, userId: user.id },
+    data: {
+      name: String(formData.get("name") ?? "").trim(),
+      issuer: trim(formData.get("issuer")),
+      date: date(formData.get("date")),
+    },
+  });
   revalidatePath("/dashboard/profile");
 }
