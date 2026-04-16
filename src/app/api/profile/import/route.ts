@@ -87,7 +87,7 @@ async function mergeIntoProfile(userId: string, p: ExtractedProfile) {
     }
   }
 
-  let added = {
+  const added = {
     experiences: 0,
     projects: 0,
     education: 0,

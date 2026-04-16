@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/user";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +13,15 @@ export async function POST(req: Request) {
     );
   }
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
+  let stripe;
+  try {
+    stripe = getStripe();
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Stripe not configured" },
+      { status: 503 },
+    );
+  }
   const session = await stripe.billingPortal.sessions.create({
     customer: user.stripeId,
     return_url: `${baseUrl}/dashboard/settings`,

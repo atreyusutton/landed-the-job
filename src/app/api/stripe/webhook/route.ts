@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
-import { stripe, PLAN_META, type PlanKey } from "@/lib/stripe";
+import { getStripe, PLAN_META, type PlanKey } from "@/lib/stripe";
 import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +31,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing signature/secret" }, { status: 400 });
   }
   const raw = await req.text();
+
+  let stripe;
+  try {
+    stripe = getStripe();
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Stripe not configured" },
+      { status: 503 },
+    );
+  }
 
   let event: Stripe.Event;
   try {

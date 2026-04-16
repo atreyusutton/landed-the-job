@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/user";
 import { db } from "@/lib/db";
-import { stripe, PRICES, PLAN_META, type PlanKey } from "@/lib/stripe";
+import { getStripe, PRICES, PLAN_META, type PlanKey } from "@/lib/stripe";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +23,16 @@ export async function POST(req: Request) {
     return NextResponse.json(
       { error: `Stripe price not configured for plan: ${planKey}` },
       { status: 500 },
+    );
+  }
+
+  let stripe;
+  try {
+    stripe = getStripe();
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Stripe not configured" },
+      { status: 503 },
     );
   }
 
