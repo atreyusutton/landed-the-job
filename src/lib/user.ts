@@ -17,8 +17,11 @@ export async function getOrCreateUser() {
     throw new Error("Clerk user has no primary email address");
   }
 
-  return db.user.create({
-    data: {
+  // Upsert handles the race where two parallel requests both see "no row".
+  return db.user.upsert({
+    where: { clerkId: userId },
+    update: {},
+    create: {
       clerkId: userId,
       email,
       name: [cu.firstName, cu.lastName].filter(Boolean).join(" ") || null,
