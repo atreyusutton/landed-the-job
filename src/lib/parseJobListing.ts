@@ -1,3 +1,5 @@
+import { parseJobText } from "@/lib/parseJobText";
+
 export type ParsedJob = {
   title: string;
   company: string;
@@ -31,121 +33,37 @@ function detectSource(url: string): string | undefined {
   }
 }
 
-function decodeEntities(html: string): string {
+/**
+ * Strip HTML to plain text, preserving paragraph breaks.
+ * Drops scripts, styles, nav/footer/header chrome, and SVG.
+ * Decodes the common entities so what we hand the LLM is readable.
+ */
+function htmlToText(html: string): string {
   return html
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, "")
+    .replace(/<svg[\s\S]*?<\/svg>/gi, "")
+    .replace(/<(nav|footer|header|aside)[\s\S]*?<\/\1>/gi, "")
+    .replace(/<\/(p|li|h[1-6]|div|tr|br|section)>/gi, "\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, " ");
-}
-
-function stripHtml(html: string): string {
-  return decodeEntities(
-    html
-      .replace(/<script[\s\S]*?<\/script>/gi, "")
-      .replace(/<style[\s\S]*?<\/style>/gi, "")
-      .replace(/<\/(p|li|h[1-6]|div|tr|br)>/gi, "\n")
-      .replace(/<br\s*\/?>/gi, "\n")
-      .replace(/<[^>]+>/g, ""),
-  )
+    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
     .replace(/[ \t]+/g, " ")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
 
-function findMeta(html: string, names: string[]): string | undefined {
-  for (const name of names) {
-    const re = new RegExp(
-      `<meta[^>]+(?:name|property)\\s*=\\s*["']${name}["'][^>]*content\\s*=\\s*["']([^"']+)["']`,
-      "i",
-    );
-    const m = re.exec(html);
-    if (m?.[1]) return decodeEntities(m[1]);
-  }
-  return undefined;
-}
-
-function extractJsonLdJobPosting(html: string): Partial<ParsedJob> | undefined {
-  const re = /<script[^>]+type\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
-  const blocks: RegExpExecArray[] = [];
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(html)) !== null) blocks.push(m);
-  for (const b of blocks) {
-    let raw = b[1].trim();
-    raw = raw.replace(/^\s*\/\/.*$/gm, "");
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(raw);
-    } catch {
-      continue;
-    }
-    const items = Array.isArray(parsed) ? parsed : [parsed];
-    for (const item of items) {
-      const node = unwrapGraph(item);
-      if (!node) continue;
-      if (node["@type"] === "JobPosting" || (Array.isArray(node["@type"]) && node["@type"].includes("JobPosting"))) {
-        return jobPostingToParsed(node);
-      }
-    }
-  }
-  return undefined;
-}
-
-type Json = Record<string, unknown>;
-
-function unwrapGraph(node: unknown): Json | undefined {
-  if (!node || typeof node !== "object") return undefined;
-  const obj = node as Json;
-  if (Array.isArray(obj["@graph"])) {
-    for (const g of obj["@graph"] as unknown[]) {
-      const inner = unwrapGraph(g);
-      if (inner && (inner["@type"] === "JobPosting" || (Array.isArray(inner["@type"]) && inner["@type"].includes("JobPosting")))) {
-        return inner;
-      }
-    }
-  }
-  return obj;
-}
-
-function jobPostingToParsed(node: Json): Partial<ParsedJob> {
-  const org = node.hiringOrganization as Json | string | undefined;
-  const company =
-    typeof org === "string"
-      ? org
-      : (org?.name as string | undefined);
-  const loc = node.jobLocation as Json | Json[] | undefined;
-  const firstLoc = Array.isArray(loc) ? loc[0] : loc;
-  const address = firstLoc?.address as Json | undefined;
-  const location = address
-    ? [address.addressLocality, address.addressRegion, address.addressCountry]
-        .filter(Boolean)
-        .join(", ")
-    : (node.applicantLocationRequirements as Json | undefined)?.name as string | undefined;
-  const salaryNode = node.baseSalary as Json | undefined;
-  const salaryValue = salaryNode?.value as Json | undefined;
-  const salary = salaryValue
-    ? `${salaryValue.minValue ?? ""}${
-        salaryValue.maxValue ? `–${salaryValue.maxValue}` : ""
-      } ${salaryValue.unitText ?? salaryNode?.currency ?? ""}`.trim()
-    : undefined;
-  const description =
-    typeof node.description === "string"
-      ? stripHtml(node.description)
-      : undefined;
-
-  return {
-    title: node.title as string | undefined,
-    company,
-    location,
-    salary,
-    description,
-  } as Partial<ParsedJob>;
-}
-
 export async function parseJobUrl(url: string): Promise<ParsedJob> {
   const source = detectSource(url);
+
   let html = "";
   try {
     const res = await fetch(url, {
@@ -155,6 +73,7 @@ export async function parseJobUrl(url: string): Promise<ParsedJob> {
         Accept: "text/html,application/xhtml+xml",
       },
       redirect: "follow",
+      signal: AbortSignal.timeout(15000),
     });
     if (!res.ok) {
       throw new Error(`Fetch failed: ${res.status}`);
@@ -166,33 +85,16 @@ export async function parseJobUrl(url: string): Promise<ParsedJob> {
     );
   }
 
-  const ld = extractJsonLdJobPosting(html) ?? {};
-  const ogTitle = findMeta(html, ["og:title", "twitter:title"]);
-  const ogDesc = findMeta(html, ["og:description", "description"]);
-  const ogSite = findMeta(html, ["og:site_name"]);
-  const titleTag =
-    /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html)?.[1]?.trim() ?? "";
-
-  const title = (ld.title || ogTitle || titleTag).split(/[|·\-—]/)[0].trim();
-  const company = (ld.company || ogSite || titleTag.split(/[|·\-—]/)[1]?.trim() || "").trim();
-  const description =
-    ld.description ||
-    ogDesc ||
-    stripHtml(html).slice(0, 8000);
-
-  if (!title) {
+  const text = htmlToText(html);
+  if (text.length < 100) {
     throw new Error(
-      "Could not extract a job title from this URL. Try pasting the listing manually.",
+      "The page returned almost no readable text — it's probably gated or rendered in JavaScript. Try the paste box instead.",
     );
   }
 
-  return {
-    title,
-    company: company || "Unknown company",
-    description,
-    requirements: ld.requirements,
-    location: ld.location,
-    salary: ld.salary,
-    source,
-  };
+  // Cap at 60KB so we never send a huge page to the LLM.
+  const trimmed = text.slice(0, 60_000);
+
+  const parsed = await parseJobText(trimmed);
+  return { ...parsed, source };
 }
