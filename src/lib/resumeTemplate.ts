@@ -33,13 +33,13 @@ body {
   print-color-adjust: exact;
 }
 a { color: #1a1a1a; text-decoration: none; }
-.header {
+.doc-head {
   text-align: center;
   margin-bottom: 10px;
   padding-bottom: 8px;
   border-bottom: 1.5px solid #1a1a1a;
 }
-.header h1 {
+.doc-head h1 {
   font-size: 24px;
   font-weight: 700;
   letter-spacing: 1.5px;
@@ -47,7 +47,6 @@ a { color: #1a1a1a; text-decoration: none; }
   margin-bottom: 4px;
 }
 .contact { font-size: 11px; color: #444; letter-spacing: 0.3px; }
-.contact span { margin: 0 4px; color: #999; }
 .section { margin-bottom: 7px; }
 .section-title {
   font-size: 12px;
@@ -66,10 +65,11 @@ a { color: #1a1a1a; text-decoration: none; }
 .entry-subtitle { font-size: 11px; font-weight: 600; color: #333; margin-bottom: 2px; }
 ul { padding-left: 14px; margin-top: 1px; }
 li { margin-bottom: 1px; padding-left: 2px; }
-.skills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 20px; }
-.skill-category { font-size: 11px; }
+.skill-category { font-size: 11px; margin-bottom: 2px; }
+.skill-category:last-child { margin-bottom: 0; }
 .skill-label { font-weight: 700; }
-.edu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 20px; }
+.edu-entry { margin-bottom: 3px; }
+.edu-entry:last-child { margin-bottom: 0; }
 .edu-degree { font-size: 11.5px; }
 .edu-school { font-size: 10.5px; color: #555; }
 @media print { body { padding: 0.4in 0.5in; } }
@@ -119,7 +119,7 @@ function renderContact(contact: string[]): string {
           : `<a href="mailto:${escape(c)}">${escape(c)}</a>`
         : escape(c),
     )
-    .join(' <span>|</span> ');
+    .join(" | ");
 }
 
 export function renderResumeHtml(data: ResumeData): string {
@@ -127,14 +127,12 @@ export function renderResumeHtml(data: ResumeData): string {
     ? `
 <div class="section">
   <div class="section-title">Skills</div>
-  <div class="skills-grid">
-    ${data.skills
-      .map(
-        (s) =>
-          `<div class="skill-category"><span class="skill-label">${escape(s.label)}:</span> ${escape(s.items)}</div>`,
-      )
-      .join("")}
-  </div>
+  ${data.skills
+    .map(
+      (s) =>
+        `<div class="skill-category"><span class="skill-label">${escape(s.label)}:</span> ${escape(s.items)}</div>`,
+    )
+    .join("")}
 </div>`
     : "";
 
@@ -142,14 +140,12 @@ export function renderResumeHtml(data: ResumeData): string {
     ? `
 <div class="section">
   <div class="section-title">Education</div>
-  <div class="edu-grid">
-    ${data.education
-      .map(
-        (e) =>
-          `<div><div class="edu-degree"><strong>${escape(e.degree)}</strong></div><div class="edu-school">${escape(e.school)}</div></div>`,
-      )
-      .join("")}
-  </div>
+  ${data.education
+    .map(
+      (e) =>
+        `<div class="edu-entry"><div class="edu-degree"><strong>${escape(e.degree)}</strong></div><div class="edu-school">${escape(e.school)}</div></div>`,
+    )
+    .join("")}
 </div>`
     : "";
 
@@ -162,7 +158,7 @@ export function renderResumeHtml(data: ResumeData): string {
 <style>${STYLES}</style>
 </head>
 <body>
-<div class="header">
+<div class="doc-head">
   <h1>${escape(data.name)}</h1>
   <div class="contact">${renderContact(data.contact)}</div>
 </div>

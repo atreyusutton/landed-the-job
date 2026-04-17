@@ -22,13 +22,13 @@ body {
   print-color-adjust: exact;
 }
 a { color: #1a1a1a; text-decoration: none; }
-.header {
+.doc-head {
   text-align: center;
   margin-bottom: 20px;
   padding-bottom: 10px;
   border-bottom: 1.5px solid #1a1a1a;
 }
-.header h1 {
+.doc-head h1 {
   font-size: 24px;
   font-weight: 700;
   letter-spacing: 1.5px;
@@ -36,7 +36,6 @@ a { color: #1a1a1a; text-decoration: none; }
   margin-bottom: 4px;
 }
 .contact { font-size: 11px; color: #444; letter-spacing: 0.3px; }
-.contact span { margin: 0 4px; color: #999; }
 .greeting { font-size: 12px; font-weight: 600; margin-bottom: 14px; }
 .body p { margin-bottom: 12px; text-align: left; }
 .closing { margin-top: 20px; }
@@ -61,7 +60,7 @@ function renderContact(contact: string[]): string {
           ? `<a href="mailto:${escape(c)}">${escape(c)}</a>`
           : escape(c),
     )
-    .join(' <span>|</span> ');
+    .join(" | ");
 }
 
 export function renderCoverLetterHtml(data: CoverLetterData): string {
@@ -74,7 +73,7 @@ export function renderCoverLetterHtml(data: CoverLetterData): string {
 <style>${STYLES}</style>
 </head>
 <body>
-<div class="header">
+<div class="doc-head">
   <h1>${escape(data.name)}</h1>
   <div class="contact">${renderContact(data.contact)}</div>
 </div>
