@@ -61,7 +61,10 @@ export default async function SettingsPage({
         <h2 className="text-sm uppercase tracking-wider font-bold mb-3 border-b border-[#1a1a1a] pb-2">
           Plans
         </h2>
-        <PlansPicker plans={plans} hasStripeCustomer={!!user.stripeId} />
+        <PlansPicker
+          plans={plans}
+          showPortal={user.plan === "unlimited" && !!user.stripeId}
+        />
       </section>
 
       <section>

@@ -21,6 +21,10 @@ model User {
   plan      String   @default("free")
   stripeId  String?  @unique
 
+  // For Pro plan daily cap (DAILY_CAP=20). Date is UTC midnight.
+  dailyUsageDate  DateTime?
+  dailyUsageCount Int       @default(0)
+
   preferences   Preferences?
   experiences   Experience[]
   projects      Project[]

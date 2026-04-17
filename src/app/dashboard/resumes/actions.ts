@@ -4,14 +4,14 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/user";
 import { db } from "@/lib/db";
-import { consumeCredit, OutOfCreditsError } from "@/lib/credits";
+import { consumeCredit, OutOfCreditsError, DailyCapExceededError } from "@/lib/credits";
 import { generateResumeData } from "@/lib/generateResume";
 import { renderResumeHtml } from "@/lib/resumeTemplate";
 import { rateLimit } from "@/lib/rateLimit";
 
 export type GenerateResumeResult =
   | { ok: true; id: string }
-  | { ok: false; error: string; outOfCredits?: boolean };
+  | { ok: false; error: string; outOfCredits?: boolean; dailyCapExceeded?: boolean };
 
 export async function generateResume(
   jobId: string,
@@ -48,6 +48,13 @@ export async function generateResume(
   } catch (err) {
     if (err instanceof OutOfCreditsError) {
       return { ok: false, outOfCredits: true, error: "Out of credits" };
+    }
+    if (err instanceof DailyCapExceededError) {
+      return {
+        ok: false,
+        dailyCapExceeded: true,
+        error: `You've hit today's cap of 20 generations. Resets at ${err.retryAt.toLocaleString()}.`,
+      };
     }
     throw err;
   }

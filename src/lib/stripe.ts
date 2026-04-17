@@ -15,35 +15,35 @@ export function getStripe(): Stripe {
 }
 
 export const PRICES = {
-  monthly_20: process.env.STRIPE_PRICE_MONTHLY_20 ?? "",
-  monthly_unlimited: process.env.STRIPE_PRICE_MONTHLY_UNLIMITED ?? "",
-  credit_pack_50: process.env.STRIPE_PRICE_CREDIT_PACK_50 ?? "",
+  pack: process.env.STRIPE_PRICE_PACK ?? "",
+  pro: process.env.STRIPE_PRICE_PRO ?? "",
 } as const;
 
 export type PlanKey = keyof typeof PRICES;
 
 export const PLAN_META: Record<
   PlanKey,
-  { name: string; description: string; mode: "subscription" | "payment"; planValue: string; creditsGranted?: number }
+  {
+    name: string;
+    description: string;
+    mode: "subscription" | "payment";
+    planValue: string;
+    creditsGranted?: number;
+  }
 > = {
-  monthly_20: {
-    name: "$9 / month",
-    description: "20 generations per month.",
-    mode: "subscription",
-    planValue: "monthly_20",
-    creditsGranted: 20,
+  pack: {
+    name: "Pack — $15",
+    description: "40 credits. Never expire.",
+    mode: "payment",
+    planValue: "free",
+    creditsGranted: 40,
   },
-  monthly_unlimited: {
-    name: "$19 / month",
-    description: "Unlimited generations.",
+  pro: {
+    name: "Pro — $19/month",
+    description: "Unlimited tailored resumes and cover letters. Soft cap of 20/day.",
     mode: "subscription",
     planValue: "unlimited",
   },
-  credit_pack_50: {
-    name: "$29 one-time",
-    description: "50 credits, never expire.",
-    mode: "payment",
-    planValue: "free",
-    creditsGranted: 50,
-  },
 };
+
+export const DAILY_CAP = 20;

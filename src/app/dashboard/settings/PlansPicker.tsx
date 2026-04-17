@@ -4,10 +4,10 @@ import { useState } from "react";
 
 export function PlansPicker({
   plans,
-  hasStripeCustomer,
+  showPortal,
 }: {
   plans: { key: string; name: string; description: string }[];
-  hasStripeCustomer: boolean;
+  showPortal: boolean;
 }) {
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +54,7 @@ export function PlansPicker({
 
   return (
     <div className="space-y-4">
-      <div className="grid sm:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-2 gap-4">
         {plans.map((p) => (
           <div key={p.key} className="border border-[#1a1a1a] p-5">
             <div className="font-bold text-lg">{p.name}</div>
@@ -70,7 +70,7 @@ export function PlansPicker({
         ))}
       </div>
 
-      {hasStripeCustomer && (
+      {showPortal && (
         <button
           onClick={portal}
           disabled={loading !== null}
