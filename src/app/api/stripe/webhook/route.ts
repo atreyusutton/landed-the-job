@@ -24,6 +24,44 @@ async function applyPlan(userId: string, planKey: PlanKey) {
   });
 }
 
+/**
+ * Persist subscription state for the Settings UI ("renews on X" / "ends on X").
+ * Credits are NEVER touched here — they're preserved across plan changes.
+ */
+async function syncSubscription(userId: string, sub: Stripe.Subscription) {
+  // Stripe types are inconsistent across SDK versions; cast to a flexible shape.
+  const s = sub as Stripe.Subscription & {
+    current_period_end?: number;
+    cancel_at_period_end?: boolean;
+  };
+  const periodEnd = s.current_period_end
+    ? new Date(s.current_period_end * 1000)
+    : null;
+
+  await db.user.update({
+    where: { id: userId },
+    data: {
+      stripeSubscriptionId: sub.id,
+      subscriptionStatus: sub.status,
+      subscriptionPeriodEnd: periodEnd,
+      subscriptionCancelAtEnd: !!s.cancel_at_period_end,
+    },
+  });
+}
+
+async function clearSubscription(userId: string) {
+  await db.user.update({
+    where: { id: userId },
+    data: {
+      plan: "free",
+      stripeSubscriptionId: null,
+      subscriptionStatus: "canceled",
+      // Keep subscriptionPeriodEnd & subscriptionCancelAtEnd around so the UI
+      // can show "Your Pro ended on X" if useful — they're not load-bearing.
+    },
+  });
+}
+
 export async function POST(req: Request) {
   const sig = req.headers.get("stripe-signature");
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -68,10 +106,13 @@ export async function POST(req: Request) {
       const userId =
         (sub.metadata?.userId as string) ??
         (await userIdForCustomer(customerId));
+      if (!userId) break;
+
       const planKey = sub.metadata?.plan as PlanKey | undefined;
-      if (userId && planKey && sub.status === "active") {
+      if (planKey && sub.status === "active") {
         await applyPlan(userId, planKey);
       }
+      await syncSubscription(userId, sub);
       break;
     }
 
@@ -80,12 +121,7 @@ export async function POST(req: Request) {
       const userId =
         (sub.metadata?.userId as string) ??
         (await userIdForCustomer(sub.customer as string));
-      if (userId) {
-        await db.user.update({
-          where: { id: userId },
-          data: { plan: "free" },
-        });
-      }
+      if (userId) await clearSubscription(userId);
       break;
     }
 
@@ -99,9 +135,10 @@ export async function POST(req: Request) {
         const userId =
           (sub.metadata?.userId as string) ??
           (await userIdForCustomer(sub.customer as string));
+        if (!userId) break;
         const planKey = sub.metadata?.plan as PlanKey | undefined;
-        // Re-grant monthly credits on renewal.
-        if (userId && planKey) await applyPlan(userId, planKey);
+        if (planKey) await applyPlan(userId, planKey);
+        await syncSubscription(userId, sub);
       }
       break;
     }

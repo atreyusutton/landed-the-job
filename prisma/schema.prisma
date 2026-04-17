@@ -21,6 +21,12 @@ model User {
   plan      String   @default("free")
   stripeId  String?  @unique
 
+  // Stripe subscription state (Pro plan).
+  stripeSubscriptionId    String?
+  subscriptionStatus      String?    // active, past_due, canceled, etc.
+  subscriptionPeriodEnd   DateTime?  // when current billing period ends
+  subscriptionCancelAtEnd Boolean    @default(false)
+
   // For Pro plan daily cap (DAILY_CAP=20). Date is UTC midnight.
   dailyUsageDate  DateTime?
   dailyUsageCount Int       @default(0)
