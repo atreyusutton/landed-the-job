@@ -42,7 +42,7 @@ export default function Home() {
             href="/sign-up"
             className="inline-block bg-[#1a1a1a] text-white px-8 py-3 text-sm uppercase tracking-wider hover:opacity-90"
           >
-            Start free — 3 generations
+            Start free, 10 generations
           </Link>
         </Show>
         <Show when="signed-in">

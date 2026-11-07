@@ -41,9 +41,7 @@ export default async function NewResumePage({
           Pick a job. We&apos;ll rewrite your resume to mirror its language and
           priorities.{" "}
           <span className="text-[#1a1a1a]">
-            {user.plan === "unlimited"
-              ? "Unlimited generations on your plan."
-              : `${user.credits} credit${user.credits === 1 ? "" : "s"} remaining.`}
+            {`${user.credits} credit${user.credits === 1 ? "" : "s"} remaining.`}
           </span>
         </p>
       </div>

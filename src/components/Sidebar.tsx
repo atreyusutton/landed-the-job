@@ -11,7 +11,8 @@ const NAV = [
 ];
 
 export function Sidebar({ credits, plan }: { credits: number; plan: string }) {
-  const creditsLabel = plan === "unlimited" ? "Unlimited" : credits;
+  const creditsLabel = credits;
+  const planLabel = plan === "pro" ? "Pro" : "Free";
 
   return (
     <>
@@ -62,7 +63,7 @@ export function Sidebar({ credits, plan }: { credits: number; plan: string }) {
             <div className="uppercase tracking-wider text-[#666]">Credits</div>
             <div className="font-bold text-base">{creditsLabel}</div>
             <div className="uppercase tracking-wider text-[#666] mt-1">
-              Plan: {plan}
+              Plan: {planLabel}
             </div>
           </div>
           <div className="flex items-center gap-2">

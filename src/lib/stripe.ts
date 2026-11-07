@@ -21,6 +21,10 @@ export const PRICES = {
 
 export type PlanKey = keyof typeof PRICES;
 
+export const PRO_MONTHLY_CREDITS = 30;
+export const PACK_CREDITS = 30;
+export const FREE_CREDITS_ON_SIGNUP = 10;
+
 export const PLAN_META: Record<
   PlanKey,
   {
@@ -28,22 +32,21 @@ export const PLAN_META: Record<
     description: string;
     mode: "subscription" | "payment";
     planValue: string;
-    creditsGranted?: number;
+    creditsGranted: number;
   }
 > = {
   pack: {
-    name: "Pack — $15",
-    description: "40 credits. Never expire.",
+    name: "Pack, $15",
+    description: `${PACK_CREDITS} credits, one-time. Credits never expire.`,
     mode: "payment",
     planValue: "free",
-    creditsGranted: 40,
+    creditsGranted: PACK_CREDITS,
   },
   pro: {
-    name: "Pro — $19/month",
-    description: "Unlimited tailored resumes and cover letters. Soft cap of 20/day.",
+    name: "Pro, $10/month",
+    description: `${PRO_MONTHLY_CREDITS} credits refilled every month. Cancel anytime.`,
     mode: "subscription",
-    planValue: "unlimited",
+    planValue: "pro",
+    creditsGranted: PRO_MONTHLY_CREDITS,
   },
 };
-
-export const DAILY_CAP = 20;

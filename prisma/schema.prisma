@@ -17,7 +17,7 @@ model User {
   linkedin  String?
   portfolio String?
 
-  credits   Int      @default(3)
+  credits   Int      @default(10)
   plan      String   @default("free")
   stripeId  String?  @unique
 
@@ -27,7 +27,8 @@ model User {
   subscriptionPeriodEnd   DateTime?  // when current billing period ends
   subscriptionCancelAtEnd Boolean    @default(false)
 
-  // For Pro plan daily cap (DAILY_CAP=20). Date is UTC midnight.
+  // Legacy daily-cap fields from the old unlimited plan. Kept on the model so
+  // we don't need a destructive migration; unused under the credit-only model.
   dailyUsageDate  DateTime?
   dailyUsageCount Int       @default(0)
 

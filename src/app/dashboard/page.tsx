@@ -31,9 +31,10 @@ export default async function DashboardPage() {
           Welcome back{user.name ? `, ${user.name.split(" ")[0]}` : ""}.
         </h1>
         <p className="text-[#666] mt-1 text-sm">
-          {user.plan === "unlimited"
-            ? "Unlimited generations on your plan."
-            : `${user.credits} credit${user.credits === 1 ? "" : "s"} remaining.`}
+          {`${user.credits} credit${user.credits === 1 ? "" : "s"} remaining.`}
+          {user.plan === "pro" && user.subscriptionPeriodEnd
+            ? ` Next refill ${user.subscriptionPeriodEnd.toLocaleDateString()}.`
+            : ""}
         </p>
       </div>
 

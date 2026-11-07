@@ -9,14 +9,11 @@ export default async function SettingsPage({
 }) {
   const sp = await searchParams;
   const user = await requireUser();
-  const isPro = user.plan === "unlimited";
+  const isPro = user.plan === "pro";
   const isCanceling = isPro && user.subscriptionCancelAtEnd;
   const periodEnd = user.subscriptionPeriodEnd;
 
-  // On Pro, hide the Pack option (they don't need credits while subscribed).
-  const planEntries = Object.entries(PLAN_META).filter(
-    ([key]) => !(isPro && key === "pack"),
-  );
+  const planEntries = Object.entries(PLAN_META);
   const plans = planEntries.map(([key, meta]) => ({
     key,
     name: meta.name,
@@ -34,7 +31,7 @@ export default async function SettingsPage({
 
       {sp.checkout === "success" && (
         <div className="border border-[#1a1a1a] bg-[#fafafa] p-4 text-sm">
-          Payment received. Your credits and plan will reflect in a moment.
+          Payment received. Your credits will reflect in a moment.
         </div>
       )}
       {sp.checkout === "cancel" && (
@@ -53,14 +50,8 @@ export default async function SettingsPage({
             <div className="font-bold">{prettyPlan(user.plan)}</div>
           </div>
           <div>
-            <div className="text-xs uppercase tracking-wider text-[#666]">
-              {isPro ? "Daily cap" : "Credits"}
-            </div>
-            <div className="font-bold">
-              {isPro
-                ? `${user.dailyUsageCount}/20 used today`
-                : user.credits}
-            </div>
+            <div className="text-xs uppercase tracking-wider text-[#666]">Credits</div>
+            <div className="font-bold">{user.credits}</div>
           </div>
           <div>
             <div className="text-xs uppercase tracking-wider text-[#666]">Email</div>
@@ -76,24 +67,14 @@ export default async function SettingsPage({
                   Your Pro plan ends on {formatDate(periodEnd)}.
                 </div>
                 <div className="text-[#666] mt-1">
-                  After that, you&apos;ll go back to credit-based billing. You currently
-                  have <strong>{user.credits} saved credit{user.credits === 1 ? "" : "s"}</strong>{" "}
-                  that will be available again.
+                  Credits you already have stay with you. You just won&apos;t get
+                  next month&apos;s refill.
                 </div>
               </>
             ) : (
-              <>
-                <div className="font-bold">
-                  Your Pro plan renews on {formatDate(periodEnd)}.
-                </div>
-                {user.credits > 0 && (
-                  <div className="text-[#666] mt-1">
-                    You have <strong>{user.credits} saved credit{user.credits === 1 ? "" : "s"}</strong>{" "}
-                    from before — they&apos;re held for you and will be available
-                    again if you ever cancel.
-                  </div>
-                )}
-              </>
+              <div className="font-bold">
+                Your Pro plan refills on {formatDate(periodEnd)}.
+              </div>
             )}
           </div>
         )}
@@ -107,7 +88,7 @@ export default async function SettingsPage({
 
       <section>
         <h2 className="text-sm uppercase tracking-wider font-bold mb-3 border-b border-[#1a1a1a] pb-2">
-          {isPro ? "Plans" : "Buy credits or upgrade"}
+          Buy credits or subscribe
         </h2>
         <PlansPicker
           plans={plans}
@@ -129,7 +110,7 @@ export default async function SettingsPage({
 }
 
 function prettyPlan(p: string): string {
-  if (p === "unlimited") return "Pro (Unlimited)";
+  if (p === "pro") return "Pro";
   if (p === "free") return "Free";
   return p;
 }

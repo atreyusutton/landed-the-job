@@ -39,7 +39,11 @@ export async function POST(req: Request) {
     messages: [
       {
         role: "user",
-        content: `Rewrite this resume bullet to be stronger: more specific, active voice, concrete outcome. Keep it ONE LINE, no period at the end, do not invent facts.${
+        content: `Rewrite this resume bullet to be stronger: more specific, active voice, concrete outcome. Keep it ONE LINE, no period at the end, do not invent facts.
+
+PUNCTUATION: never use em-dashes (—) or en-dashes (–). Use commas or periods instead. Plain hyphens are only for compound words.
+
+BANNED WORDS (do not output any): leverage, leveraged, utilize, utilized, robust, seamless, seamlessly, synergy, unlock, empower, cutting-edge, best-in-class, world-class, dynamic, transformative, innovative, game-changer, holistic, delve, elevate, streamline. Prefer: built, shipped, ran, led, wrote, cut, grew, fixed, launched, owned, migrated.${
           body.jobContext ? `\n\nFor context, the bullet is going on a resume tailored to: ${body.jobContext}` : ""
         }\n\nBullet: ${text}\n\nReturn only the rewritten bullet, nothing else.`,
       },
@@ -50,7 +54,9 @@ export async function POST(req: Request) {
     .map((c) => (c.type === "text" ? c.text : ""))
     .join("")
     .trim()
-    .replace(/^["']|["']$/g, "");
+    .replace(/^["']|["']$/g, "")
+    .replace(/\s*—\s*/g, ", ")
+    .replace(/([^\d])–([^\d])/g, "$1-$2");
 
   return NextResponse.json({ bullet: out });
 }

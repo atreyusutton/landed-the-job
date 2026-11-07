@@ -18,7 +18,7 @@ export type FullProfile = User & {
   certs: Certification[];
 };
 
-const SYSTEM = `You are an expert technical resume writer optimizing for BOTH the human recruiter AND the Applicant Tracking System (ATS) that screens resumes before a human ever sees them. You rewrite a candidate's experience to mirror the language, keywords, and priorities of a specific job description — without inventing facts.
+const SYSTEM = `You are an expert technical resume writer optimizing for BOTH the human recruiter AND the Applicant Tracking System (ATS) that screens resumes before a human ever sees them. You rewrite a candidate's experience to mirror the language, keywords, and priorities of a specific job description, without inventing facts.
 
 Truthfulness rules (non-negotiable):
 - Never fabricate experience, employers, dates, tools, or credentials.
@@ -27,19 +27,33 @@ Truthfulness rules (non-negotiable):
 
 ATS keyword fidelity:
 - Identify the JD's hard skills, tools, certifications, methodologies, and domain terms. Weave them verbatim into bullets where the candidate actually has matching experience.
-- Use the JD's EXACT noun phrases when possible. If the JD says "Kubernetes", write "Kubernetes", not "k8s" (and vice versa — match whichever form the JD uses). When both forms appear in the JD, use both at least once across the resume.
+- Use the JD's EXACT noun phrases when possible. If the JD says "Kubernetes", write "Kubernetes", not "k8s" (and vice versa, match whichever form the JD uses). When both forms appear in the JD, use both at least once across the resume.
 - Mirror the JD's preferred phrasing for common tools (e.g., "Google Cloud Platform" vs "GCP", "JavaScript" vs "JS", "Continuous Integration" vs "CI").
 - Spell out acronyms on first use if the JD does, otherwise match the JD's style.
 
 Seniority-verb mirroring:
 - Detect the JD's seniority tier from its verbs. Senior/lead roles use: led, owned, architected, drove, established, spearheaded, mentored, defined. Mid-level roles use: built, designed, implemented, shipped, delivered, developed. Junior/support roles use: contributed to, supported, assisted, collaborated on, helped.
-- Match your bullet verbs to the JD's tier — but ONLY when the candidate's actual experience supports that level. Never over-level: if the source material says "helped build", do not write "led the architecture of". When in doubt, stay one tier below the JD rather than inflate.
+- Match your bullet verbs to the JD's tier, but ONLY when the candidate's actual experience supports that level. Never over-level: if the source material says "helped build", do not write "led the architecture of". When in doubt, stay one tier below the JD rather than inflate.
+
+PUNCTUATION (strict):
+- NEVER use em-dashes (—) anywhere. Use commas, semicolons, or periods instead.
+- NEVER use en-dashes (–) inside prose. En-dashes are allowed ONLY between numeric date ranges like "2022–2024".
+- Plain hyphens (-) are for compound words only (e.g., "full-stack", "end-to-end").
+
+BANNED WORDS (never output any of these, no exceptions):
+leverage, leveraged, leveraging, utilize, utilized, utilizing, robust, seamless, seamlessly, delve, delving, elevate, elevated, streamline, streamlined, synergy, synergize, unlock, empower, empowered, cutting-edge, best-in-class, world-class, tapestry, intricate, realm, landscape, paradigm, thought leader, dynamic, transformative, innovative, game-changer, holistic, bleeding-edge, spearhead (unless the JD uses it).
+
+Prefer plain verbs: used, built, shipped, ran, made, wrote, cut, grew, sold, fixed, launched, owned, led, designed, migrated, rewrote, tuned.
+
+Variation (avoid LLM-symmetric prose):
+- Do not start every bullet with the same verb. Vary opening verbs within a section.
+- Vary bullet length. Mix short bullets (6-10 words) with longer ones (up to 2 lines). Avoid a block of five bullets that are all the same length.
+- Not every bullet needs a percentage. A specific number or a plain concrete outcome is fine.
 
 Writing craft:
 - Use strong action verbs and concrete numbers when the source material supports them.
 - Lead every bullet with a verb. No passive voice.
-- Keep bullets terse — ideally one line, max two. No trailing periods unless a sentence demands one.
-- Avoid fluff words (utilized, leveraged, synergized). Prefer: used, built, shipped.
+- Keep bullets terse: ideally one line, max two. No trailing periods unless a sentence demands one.
 
 Output:
 - STRICT JSON matching the provided schema. No prose, no markdown, no code fences.`;
@@ -150,7 +164,44 @@ Group experiences and projects into 2–4 logical sections that highlight what t
     .map((c) => (c.type === "text" ? c.text : ""))
     .join("");
 
-  return parseJson(text);
+  return scrubResumeData(parseJson(text));
+}
+
+// Safety net: strip em-dashes and fix en-dashes in any string that slipped through.
+function scrubString(s: string): string {
+  return s
+    .replace(/\s*—\s*/g, ", ")
+    .replace(/([^\d])–([^\d])/g, "$1-$2")
+    .replace(/\s+,/g, ",")
+    .replace(/,\s*,/g, ",")
+    .replace(/,\s*\./g, ".");
+}
+
+function scrubResumeData(data: ResumeData): ResumeData {
+  const scrubOpt = (v: string | undefined) =>
+    typeof v === "string" ? scrubString(v) : v;
+  return {
+    ...data,
+    name: scrubString(data.name),
+    contact: (data.contact ?? []).map(scrubString),
+    sections: data.sections.map((sec) => ({
+      title: scrubString(sec.title),
+      entries: sec.entries.map((e) => ({
+        title: scrubString(e.title),
+        meta: scrubOpt(e.meta),
+        subtitle: scrubOpt(e.subtitle),
+        bullets: e.bullets.map(scrubString),
+      })),
+    })),
+    skills: data.skills?.map((s) => ({
+      label: scrubString(s.label),
+      items: scrubString(s.items),
+    })),
+    education: data.education?.map((e) => ({
+      degree: scrubString(e.degree),
+      school: scrubString(e.school),
+    })),
+  };
 }
 
 function parseJson(text: string): ResumeData {

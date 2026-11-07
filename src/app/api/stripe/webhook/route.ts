@@ -13,13 +13,27 @@ async function userIdForCustomer(customerId: string): Promise<string | null> {
   return u?.id ?? null;
 }
 
-async function applyPlan(userId: string, planKey: PlanKey) {
+/**
+ * Apply a plan to a user. Credits are gated on `grantCredits` so we don't
+ * triple-grant on the three events that fire during a subscription purchase
+ * (checkout.session.completed, customer.subscription.created, invoice.paid).
+ *
+ * - Pack: one-time payment. Grant credits on checkout.session.completed.
+ * - Pro: subscription. Grant credits on invoice.paid (fires on initial AND renewal).
+ */
+async function applyPlan(
+  userId: string,
+  planKey: PlanKey,
+  opts: { grantCredits: boolean },
+) {
   const meta = PLAN_META[planKey];
   await db.user.update({
     where: { id: userId },
     data: {
       plan: meta.planValue,
-      ...(meta.creditsGranted ? { credits: { increment: meta.creditsGranted } } : {}),
+      ...(opts.grantCredits && meta.creditsGranted
+        ? { credits: { increment: meta.creditsGranted } }
+        : {}),
     },
   });
 }
@@ -49,6 +63,26 @@ async function syncSubscription(userId: string, sub: Stripe.Subscription) {
   });
 }
 
+/**
+ * Pull the subscription ID off an invoice. The top-level `invoice.subscription`
+ * field was removed in recent Stripe API versions (we pin to 2026-03-25.dahlia)
+ * and replaced with `invoice.parent.subscription_details.subscription`. Try the
+ * new path first, fall back to the legacy field for safety.
+ */
+function extractSubscriptionId(invoice: Stripe.Invoice): string | null {
+  const parentSub = invoice.parent?.subscription_details?.subscription;
+  if (parentSub) {
+    return typeof parentSub === "string" ? parentSub : parentSub.id;
+  }
+  const legacy = (invoice as Stripe.Invoice & {
+    subscription?: string | Stripe.Subscription;
+  }).subscription;
+  if (legacy) {
+    return typeof legacy === "string" ? legacy : legacy.id;
+  }
+  return null;
+}
+
 async function clearSubscription(userId: string) {
   await db.user.update({
     where: { id: userId },
@@ -56,8 +90,6 @@ async function clearSubscription(userId: string) {
       plan: "free",
       stripeSubscriptionId: null,
       subscriptionStatus: "canceled",
-      // Keep subscriptionPeriodEnd & subscriptionCancelAtEnd around so the UI
-      // can show "Your Pro ended on X" if useful — they're not load-bearing.
     },
   });
 }
@@ -93,9 +125,12 @@ export async function POST(req: Request) {
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
-      const userId = (session.metadata?.userId as string) ?? null;
+      const userId = session.metadata?.userId as string | undefined;
       const planKey = session.metadata?.plan as PlanKey | undefined;
-      if (userId && planKey) await applyPlan(userId, planKey);
+      if (!userId || !planKey) break;
+      const meta = PLAN_META[planKey];
+      // One-time packs grant credits here. Subscriptions wait for invoice.paid.
+      await applyPlan(userId, planKey, { grantCredits: meta.mode === "payment" });
       break;
     }
 
@@ -110,7 +145,8 @@ export async function POST(req: Request) {
 
       const planKey = sub.metadata?.plan as PlanKey | undefined;
       if (planKey && sub.status === "active") {
-        await applyPlan(userId, planKey);
+        // Set plan, do NOT grant credits. Credits come from invoice.paid.
+        await applyPlan(userId, planKey, { grantCredits: false });
       }
       await syncSubscription(userId, sub);
       break;
@@ -127,19 +163,18 @@ export async function POST(req: Request) {
 
     case "invoice.paid": {
       const invoice = event.data.object as Stripe.Invoice;
-      const subId =
-        (invoice as Stripe.Invoice & { subscription?: string | Stripe.Subscription })
-          .subscription;
-      if (subId && typeof subId === "string") {
-        const sub = await stripe.subscriptions.retrieve(subId);
-        const userId =
-          (sub.metadata?.userId as string) ??
-          (await userIdForCustomer(sub.customer as string));
-        if (!userId) break;
-        const planKey = sub.metadata?.plan as PlanKey | undefined;
-        if (planKey) await applyPlan(userId, planKey);
-        await syncSubscription(userId, sub);
-      }
+      const subId = extractSubscriptionId(invoice);
+      if (!subId) break;
+
+      const sub = await stripe.subscriptions.retrieve(subId);
+      const userId =
+        (sub.metadata?.userId as string) ??
+        (await userIdForCustomer(sub.customer as string));
+      if (!userId) break;
+      const planKey = sub.metadata?.plan as PlanKey | undefined;
+      // Subscription renewal (or first payment): grant monthly credits.
+      if (planKey) await applyPlan(userId, planKey, { grantCredits: true });
+      await syncSubscription(userId, sub);
       break;
     }
 

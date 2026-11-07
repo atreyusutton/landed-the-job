@@ -37,9 +37,7 @@ export default async function NewCoverLetterPage({
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Write a cover letter</h1>
         <p className="text-sm text-[#666] mt-1">
-          {user.plan === "unlimited"
-            ? "Unlimited generations on your plan."
-            : `${user.credits} credit${user.credits === 1 ? "" : "s"} remaining.`}
+          {`${user.credits} credit${user.credits === 1 ? "" : "s"} remaining.`}
         </p>
       </div>
       <GenerateCoverLetterForm jobs={jobs} initialJobId={jobId} />

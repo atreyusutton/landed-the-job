@@ -15,9 +15,17 @@ export function Paywall({ onClose }: { onClose: () => void }) {
         <h2 className="text-2xl font-bold tracking-tight mb-2">
           You&apos;re out of credits.
         </h2>
-        <p className="text-sm text-[#666] mb-6">
-          Pick a plan to keep generating tailored resumes and cover letters.
+        <p className="text-sm text-[#666] mb-2">
+          Keep generating tailored resumes and cover letters.
         </p>
+        <ul className="text-sm text-[#1a1a1a] mb-6 space-y-1">
+          <li>
+            <strong>Pro</strong>, $10/month, 30 credits every month.
+          </li>
+          <li>
+            <strong>Pack</strong>, $15 one-time, 30 credits that never expire.
+          </li>
+        </ul>
         <Link
           href="/dashboard/settings"
           className="block w-full bg-[#1a1a1a] text-white text-center py-3 text-xs uppercase tracking-wider hover:opacity-90"
